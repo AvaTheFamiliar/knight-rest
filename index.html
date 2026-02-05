@@ -274,28 +274,22 @@
         let soundOn = true;
         let audioCtx = null;
         let masterGain = null;
+        
+        // DOM elements
         const quoteEl = document.getElementById('quote');
         const soundBtn = document.getElementById('sound-btn');
         const startOverlay = document.getElementById('start-overlay');
         const embersCanvas = document.getElementById('embers');
-        const embersCtx = embersCanvas.getContext('2d');
+        const embersCtx = embersCanvas ? embersCanvas.getContext('2d') : null;
         const starsCanvas = document.getElementById('stars');
-        const starsCtx = starsCanvas.getContext('2d');
+        const starsCtx = starsCanvas ? starsCanvas.getContext('2d') : null;
 
-        // Resize handling
-        function resizeCanvas() {
-            embersCanvas.width = window.innerWidth;
-            embersCanvas.height = window.innerHeight;
-            starsCanvas.width = window.innerWidth;
-            starsCanvas.height = window.innerHeight;
-            initStars();
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Stars
+        // Stars array
         const stars = [];
+        
+        // Initialize stars
         function initStars() {
+            if (!starsCanvas) return;
             stars.length = 0;
             for (let i = 0; i < 200; i++) {
                 stars.push({
@@ -308,7 +302,23 @@
             }
         }
 
+        // Resize handling
+        function resizeCanvas() {
+            if (embersCanvas) {
+                embersCanvas.width = window.innerWidth;
+                embersCanvas.height = window.innerHeight;
+            }
+            if (starsCanvas) {
+                starsCanvas.width = window.innerWidth;
+                starsCanvas.height = window.innerHeight;
+            }
+            initStars();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
         function drawStars(time) {
+            if (!starsCtx || !starsCanvas) return;
             // Draw gradient background
             const gradient = starsCtx.createLinearGradient(0, 0, 0, starsCanvas.height);
             gradient.addColorStop(0, '#0a0a18');
@@ -355,6 +365,7 @@
         }
 
         function drawEmbers() {
+            if (!embersCtx || !embersCanvas) return;
             embersCtx.clearRect(0, 0, embersCanvas.width, embersCanvas.height);
             embers.forEach(e => {
                 const gradient = embersCtx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.size * 2);
