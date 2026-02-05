@@ -31,6 +31,17 @@
             justify-content: center;
         }
 
+        /* Stars canvas */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(to bottom, #0a0a18 0%, #0f1428 50%, #1a1a2e 100%);
+        }
+
         /* Main background image */
         #scene-bg {
             position: fixed;
@@ -38,8 +49,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('knight-bg.png') center center / cover no-repeat;
-            background-color: #0a0a0a;
+            background: url('knight-campfire.png') center center / contain no-repeat;
+            background-color: transparent;
             z-index: 1;
         }
 
@@ -214,6 +225,7 @@
 </head>
 <body>
     <div id="app">
+        <canvas id="stars"></canvas>
         <div id="scene-bg"></div>
         <div id="vignette"></div>
         <div id="fire-glow"></div>
@@ -267,14 +279,53 @@
         const startOverlay = document.getElementById('start-overlay');
         const embersCanvas = document.getElementById('embers');
         const embersCtx = embersCanvas.getContext('2d');
+        const starsCanvas = document.getElementById('stars');
+        const starsCtx = starsCanvas.getContext('2d');
 
         // Resize handling
         function resizeCanvas() {
             embersCanvas.width = window.innerWidth;
             embersCanvas.height = window.innerHeight;
+            starsCanvas.width = window.innerWidth;
+            starsCanvas.height = window.innerHeight;
+            initStars();
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+
+        // Stars
+        const stars = [];
+        function initStars() {
+            stars.length = 0;
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * starsCanvas.width,
+                    y: Math.random() * starsCanvas.height * 0.6,
+                    size: Math.random() * 2 + 0.5,
+                    twinkleSpeed: Math.random() * 0.02 + 0.005,
+                    twinkleOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function drawStars(time) {
+            // Draw gradient background
+            const gradient = starsCtx.createLinearGradient(0, 0, 0, starsCanvas.height);
+            gradient.addColorStop(0, '#0a0a18');
+            gradient.addColorStop(0.5, '#0f1428');
+            gradient.addColorStop(1, '#1a1a2e');
+            starsCtx.fillStyle = gradient;
+            starsCtx.fillRect(0, 0, starsCanvas.width, starsCanvas.height);
+            
+            // Draw stars
+            stars.forEach(star => {
+                const brightness = 0.3 + 0.7 * Math.abs(Math.sin(time * star.twinkleSpeed + star.twinkleOffset));
+                starsCtx.fillStyle = `rgba(255, 255, 240, ${brightness})`;
+                starsCtx.beginPath();
+                starsCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                starsCtx.fill();
+            });
+        }
 
         // Embers system
         const embers = [];
@@ -419,6 +470,10 @@
         // Animation loop
         let lastEmberTime = 0;
         function animate(time) {
+            // Draw twinkling stars
+            drawStars(time * 0.001);
+            
+            // Embers
             if (time - lastEmberTime > 150) {
                 if (Math.random() > 0.4) spawnEmber();
                 lastEmberTime = time;
